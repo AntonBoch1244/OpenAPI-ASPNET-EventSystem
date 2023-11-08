@@ -7,7 +7,7 @@ using System.Text.Json.Nodes;
 
 namespace OpenAPIASPNET.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/events")]
     [ApiController]
     public class EventsController : ControllerBase
     {
@@ -20,7 +20,7 @@ namespace OpenAPIASPNET.Controllers
             consumer = message_queue;
         }
 
-        // GET: api/Events
+        // GET: api/events
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Events>>> GetEvents()
         {
@@ -31,7 +31,7 @@ namespace OpenAPIASPNET.Controllers
             return await _context.Events.ToListAsync();
         }
 
-        // GET: api/Events/5
+        // GET: api/events/00000000-0000-0000-0000-000000000000
         [HttpGet("{id}")]
         public async Task<ActionResult<Events>> GetEvents(Guid id)
         {
@@ -49,9 +49,8 @@ namespace OpenAPIASPNET.Controllers
             return events;
         }
 
-        // POST: api/Events
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPost]
+        // POST: api/events/manual
+        [HttpPost("manual")]
         public async Task<ActionResult<Events>> PostEvents(Events events)
         {
             if (_context.Events == null)
@@ -64,6 +63,7 @@ namespace OpenAPIASPNET.Controllers
             return CreatedAtAction("GetEvents", new { id = events.Id }, events);
         }
 
+        // POST: api/events/rabbit
         [HttpPost("rabbit")]
         public async Task<ActionResult<Events>> GatherEvents()
         {
