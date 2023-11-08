@@ -1,0 +1,13 @@
+{
+  "dependencies": {
+    "pgl": {
+      "type": "postgresql",
+      "connectionId": "localhost",
+      "dynamicId": null
+    },
+    "ampq": {
+      "type": "rabbitmq",
+      "connectionId": "rabbit"
+    }
+  }
+}

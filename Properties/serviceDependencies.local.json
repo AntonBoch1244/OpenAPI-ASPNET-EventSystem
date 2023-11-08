@@ -1,0 +1,22 @@
+{
+  "dependencies": {
+    "pgl": {
+      "containerPorts": "5432:5432",
+      "secretStore": "LocalSecretsFile",
+      "containerName": "pgl",
+      "containerImage": "postgres:alpine",
+      "type": "postgresql.container",
+      "connectionId": "localhost",
+      "dynamicId": null
+    },
+    "ampq": {
+      "containerPorts": "5672:5672,15672:15672",
+      "secretStore": "LocalSecretsFile",
+      "containerName": "amqp",
+      "containerImage": "rabbitmq:3-management-alpine",
+      "resourceId": null,
+      "type": "rabbitmq.container",
+      "connectionId": "rabbit"
+    }
+  }
+}
