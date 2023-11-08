@@ -1,7 +1,9 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using EasyNetQ;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OpenAPIASPNET.Contexts;
 using OpenAPIASPNET.Contexts.Models;
+using System.Text.Json.Nodes;
 
 namespace OpenAPIASPNET.Controllers
 {
@@ -10,10 +12,12 @@ namespace OpenAPIASPNET.Controllers
     public class EventsController : ControllerBase
     {
         private readonly OpenAPIASPNETContext _context;
+        private readonly IBus consumer;
 
-        public EventsController(OpenAPIASPNETContext context)
+        public EventsController(OpenAPIASPNETContext context, IBus message_queue)
         {
             _context = context;
+            consumer = message_queue;
         }
 
         // GET: api/Events
@@ -61,11 +65,27 @@ namespace OpenAPIASPNET.Controllers
         }
 
         [HttpPost("rabbit")]
-        public async Task<ActionResult<Events>> PushFromRabbit()
+        public async Task<ActionResult<Events>> GatherEvents()
         {
-            
+            try
+            {
+                await consumer.PubSub.SubscribeAsync<JsonNode>("Events", callback => {
+                    JsonObject message = callback.AsObject();
+                    Events events = new();
+                    events.Id = new Guid(message["Id"].ToString());
+                    events.EventTime = new DateTime(long.Parse(message["Time"].ToString()));
+                    events.EventDescription = message["Description"].ToString();
+                    events.EventCode = byte.Parse(message["Code"].ToString());
+                    events.User = new Guid(message["User"].ToString());
+                    PostEvents(events).Wait();
+                });
+            }
+            catch (Exception ex)
+            {
+                return Problem($"Exception while retriving messages from queue: {ex.Message}");
+            }
 
-            return CreatedAtAction("", null);
+            return Created("GetEvents", null);
         }
 
         private bool EventsExists(Guid id)
