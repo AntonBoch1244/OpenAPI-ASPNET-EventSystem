@@ -42,19 +42,19 @@ namespace OpenAPIASPNET
             builder.Services.AddSwaggerGen();
 
             // Message Queue
-            if ((env["AMPQ_HOSTNAME"] != null) && (env["AMPQ_PORT"] != null) && (env["AMPQ_USERNAME"] != null) && (env["AMPQ_PASSWORD"] != null))
+            if ((env["AMQP_HOSTNAME"] != null) && (env["AMQP_PORT"] != null) && (env["AMQP_USERNAME"] != null) && (env["AMQP_PASSWORD"] != null))
             {
                 builder.Services.RegisterEasyNetQ((config) =>
                 {
                     EasyNetQ.ConnectionConfiguration cfg = new();
                     EasyNetQ.HostConfiguration hostcfg = new()
                     {
-                        Host = env["AMPQ_HOSTNAME"].ToString().ToLower(),
-                        Port = ushort.Parse(env["AMPQ_PORT"].ToString())
+                        Host = env["AMQP_HOSTNAME"].ToString().ToLower(),
+                        Port = ushort.Parse(env["AMQP_PORT"].ToString())
                     };
                     cfg.Hosts.Add(hostcfg);
-                    cfg.UserName = env["AMPQ_USERNAME"].ToString();
-                    cfg.Password = env["AMPQ_PASSWORD"].ToString();
+                    cfg.UserName = env["AMQP_USERNAME"].ToString();
+                    cfg.Password = env["AMQP_PASSWORD"].ToString();
                     return cfg;
                 });
             }
