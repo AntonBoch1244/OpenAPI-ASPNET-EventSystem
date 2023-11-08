@@ -73,13 +73,11 @@ namespace OpenAPIASPNET
             // Database Migration
             if (env["POSTGRESQL_CONNECTION"] != null)
             {
-                IServiceScope services = app.Services.CreateScope();
-
-                Contexts.OpenAPIASPNETContext db = services.ServiceProvider.GetRequiredService<Contexts.OpenAPIASPNETContext>();
+                using (IServiceScope services = app.Services.CreateScope())
+                    using (Contexts.OpenAPIASPNETContext db = services.ServiceProvider.GetRequiredService<Contexts.OpenAPIASPNETContext>())
+                    {
                 db.Database.Migrate();
-                db.Dispose();
-
-                services.Dispose();
+                    }
             }
             // Database Migration
 
