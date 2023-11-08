@@ -1,6 +1,5 @@
 using Serilog.Sinks.Graylog;
 using Serilog;
-using LinqToDB.Data;
 using Microsoft.EntityFrameworkCore;
 
 namespace OpenAPIASPNET
@@ -48,9 +47,11 @@ namespace OpenAPIASPNET
                 builder.Services.RegisterEasyNetQ((config) =>
                 {
                     EasyNetQ.ConnectionConfiguration cfg = new();
-                    EasyNetQ.HostConfiguration hostcfg = new();
-                    hostcfg.Host = env["AMPQ_HOSTNAME"].ToString().ToLower();
-                    hostcfg.Port = ushort.Parse(env["AMPQ_PORT"].ToString());
+                    EasyNetQ.HostConfiguration hostcfg = new()
+                    {
+                        Host = env["AMPQ_HOSTNAME"].ToString().ToLower(),
+                        Port = ushort.Parse(env["AMPQ_PORT"].ToString())
+                    };
                     cfg.Hosts.Add(hostcfg);
                     cfg.UserName = env["AMPQ_USERNAME"].ToString();
                     cfg.Password = env["AMPQ_PASSWORD"].ToString();
@@ -76,7 +77,7 @@ namespace OpenAPIASPNET
                 using (IServiceScope services = app.Services.CreateScope())
                     using (Contexts.OpenAPIASPNETContext db = services.ServiceProvider.GetRequiredService<Contexts.OpenAPIASPNETContext>())
                     {
-                db.Database.Migrate();
+                        db.Database.Migrate();
                     }
             }
             // Database Migration
