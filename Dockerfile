@@ -18,11 +18,11 @@ RUN dotnet publish "OpenAPIASPNET.csproj" -c Release -o /app/publish /p:UseAppHo
 
 FROM base AS final
 WORKDIR /app
-ENV GRAYLOG_ADDRESS=""
-ENV AMQP_HOSTNAME="192.168.0.2"
-ENV AMQP_PORT="5672"
-ENV AMQP_USERNAME="guest"
-ENV AMQP_PASSWORD=""
-ENV POSTGRESQL_CONNECTION="Server=192.168.0.2;Port=5432;Database=postgres;User ID=postgres;Password=testtesttest;"
+ENV GRAYLOG_ADDRESS ""
+ENV AMQP_HOSTNAME "192.168.0.2"
+ENV AMQP_PORT "5672"
+ENV AMQP_USERNAME "guest"
+ENV AMQP_PASSWORD "guest"
+ENV POSTGRESQL_CONNECTION "Server=192.168.0.2;Port=5432;Database=postgres;User ID=postgres;Password=testtesttest;"
 COPY --from=publish /app/publish .
 ENTRYPOINT ["dotnet", "OpenAPIASPNET.dll"]
