@@ -3,7 +3,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OpenAPIASPNET.Contexts;
 using OpenAPIASPNET.Contexts.Models;
-using System.Text.Json.Nodes;
+using Serilog;
+using System.Text.Json;
 
 namespace OpenAPIASPNET.Controllers
 {
@@ -69,24 +70,39 @@ namespace OpenAPIASPNET.Controllers
         {
             try
             {
-                await consumer.PubSub.SubscribeAsync<JsonNode>("Events", callback => {
-                    JsonObject message = callback.AsObject();
+                await consumer.PubSub.SubscribeAsync<String>("events", callback =>
+                {
                     Events events = new();
-                    events.Id = new Guid(message["Id"].ToString());
-                    events.EventTime = new DateTime(long.Parse(message["Time"].ToString()));
-                    events.EventDescription = message["Description"].ToString();
-                    events.EventCode = byte.Parse(message["Code"].ToString());
-                    events.User = new Guid(message["User"].ToString());
+                    JsonElement message = JsonDocument.Parse(callback).RootElement;
+                    using (JsonElement.ObjectEnumerator enumerated = message.EnumerateObject())
+                    {
+                        while (enumerated.MoveNext())
+                        {
+                            switch (enumerated.Current.Name)
+                            {
+                                case "Id": { events.Id = enumerated.Current.Value.GetGuid(); break; }
+                                case "Time": { events.EventTime = enumerated.Current.Value.GetDateTime(); break; }
+                                case "Description": { events.EventDescription = enumerated.Current.Value.GetString(); break; }
+                                case "Code": { events.EventCode = enumerated.Current.Value.GetByte(); break; }
+                                case "User": { events.User = enumerated.Current.Value.GetGuid(); break; }
+                                default: { throw new JsonException($"Unknown field {enumerated.Current.Name}"); }
+                            }
+                        }
+                    }
+                    Log.Information("Event collected.");
                     PostEvents(events).Wait();
-                });
+                }, config =>
+                {
+                    config.WithQueueName("events");
+                }).AsTask();
             }
             catch (Exception ex)
             {
                 return Problem($"Exception while retriving messages from queue: {ex.Message}");
             }
-
-            return Created("GetEvents", null);
+            return CreatedAtAction("GetEvents", null);
         }
+
 
         private bool EventsExists(Guid id)
         {
