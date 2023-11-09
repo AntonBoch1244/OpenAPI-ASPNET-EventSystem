@@ -52,3 +52,32 @@ podman run \
  -e "POSTGRESQL_CONNECTION=Server=<Host>;Port=5432;Database=<Database>;User ID=<Role>;Password=<Role password>;" \
  openapiaspnet:dev
 ```
+
+## RabbitMQ Queue
+---
+
+Main queue: events
+Errors queue: EasyNetQ_Default_Error_Queue
+
+## Queue message format
+---
+
+```json
+{
+  "Id": "00000000-0000-0000-0000-000000000000",
+  "User": "00000000-0000-0000-0000-000000000000",
+  "EventCode": 0,
+  "EventDescription": "description",
+  "EventTime": "YYYY-MM-DDTHH:mm:ssZ"
+}
+```
+
+## Endpoints
+---
+
+|Name|URL|Method|Body|
+|:---|:--|:-----|----|
+|Swagger UI|/swagger|GET|False|
+|RabbitMQ pull|/api/events/rabbit|POST|True|
+|Manual pull|/api/events/manual|POST|True|
+|Events|/api/events(?/{Id})|GET|False|
