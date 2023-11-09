@@ -3,8 +3,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OpenAPIASPNET.Contexts;
 using OpenAPIASPNET.Contexts.Models;
-using Serilog;
-using System.Text.Json;
 
 namespace OpenAPIASPNET.Controllers
 {
@@ -70,43 +68,23 @@ namespace OpenAPIASPNET.Controllers
         {
             try
             {
-                await consumer.PubSub.SubscribeAsync<String>("events", callback =>
+                using (consumer.SendReceive.Receive<Events>("events", (events) =>
                 {
-                    Events events = new();
-                    JsonElement message = JsonDocument.Parse(callback).RootElement;
-                    using (JsonElement.ObjectEnumerator enumerated = message.EnumerateObject())
-                    {
-                        while (enumerated.MoveNext())
-                        {
-                            switch (enumerated.Current.Name)
-                            {
-                                case "Id": { events.Id = enumerated.Current.Value.GetGuid(); break; }
-                                case "Time": { events.EventTime = enumerated.Current.Value.GetDateTime(); break; }
-                                case "Description": { events.EventDescription = enumerated.Current.Value.GetString(); break; }
-                                case "Code": { events.EventCode = enumerated.Current.Value.GetByte(); break; }
-                                case "User": { events.User = enumerated.Current.Value.GetGuid(); break; }
-                                default: { throw new JsonException($"Unknown field {enumerated.Current.Name}"); }
-                            }
-                        }
-                    }
-                    Log.Information("Event collected.");
-                    PostEvents(events).Wait();
-                }, config =>
-                {
-                    config.WithQueueName("events");
-                }).AsTask();
+                    _context.Events.Add(events);
+                    _context.SaveChanges();
+                })) ;
             }
             catch (Exception ex)
             {
                 return Problem($"Exception while retriving messages from queue: {ex.Message}");
             }
             return CreatedAtAction("GetEvents", null);
-        }
-
-
-        private bool EventsExists(Guid id)
-        {
-            return (_context.Events?.Any(e => e.Id == id)).GetValueOrDefault();
-        }
     }
+
+
+    private bool EventsExists(Guid id)
+    {
+        return (_context.Events?.Any(e => e.Id == id)).GetValueOrDefault();
+    }
+}
 }
